@@ -750,6 +750,38 @@ impl Vger {
         rects
     }
 
+    pub fn char_bounds(
+        &mut self,
+        text: &str,
+        size: u32,
+        max_width: Option<f32>,
+    ) -> Vec<Vec<LocalRect>> {
+        self.setup_layout(text, size, max_width);
+        let glyphs = self.layout.glyphs();
+
+        if let Some(lines) = self.layout.lines() {
+            let mut chunked_lines = Vec::with_capacity(lines.len());
+
+            for line in lines {
+                let mut rects = Vec::with_capacity(line.glyph_end - line.glyph_start + 1);
+
+                for i in line.glyph_start..line.glyph_end + 1 {
+                    let glyph = glyphs[i];
+                    rects.push(LocalRect::new(
+                        [glyph.x, glyph.y].into(),
+                        [glyph.width as f32, glyph.height as f32].into(),
+                    ));
+                }
+
+                chunked_lines.push(rects);
+            }
+
+            chunked_lines
+        } else {
+            vec![]
+        }
+    }
+
     pub fn line_metrics(
         &mut self,
         text: &str,

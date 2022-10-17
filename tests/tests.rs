@@ -13,6 +13,35 @@ fn setup() -> (Arc<wgpu::Device>, Arc<wgpu::Queue>) {
 }
 
 #[test]
+fn test_char_bounds() {
+    let (device, queue) = setup();
+    let mut vger = Vger::new(device, queue, wgpu::TextureFormat::Rgba8UnormSrgb);
+
+    let text = r"
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. In velit est, semper ut aliquam feugiat, vestibulum nec ante. In tincidunt laoreet euismod. Mauris sapien neque, blandit viverra lectus consectetur, gravida rutrum ipsum. Nunc sed rutrum risus, blandit dapibus tellus. Nullam ac pretium orci. Nullam at nibh ac diam sodales faucibus id in nunc. Aliquam a tincidunt massa. In hac habitasse platea dictumst. Maecenas interdum nibh vitae lectus gravida, et egestas libero vehicula. Nam iaculis arcu ac ex eleifend, eget aliquam erat pharetra.
+
+Aliquam blandit eget leo vitae vehicula. Ut consequat id augue in sagittis. Nam vitae purus neque. Praesent eget dolor non dui luctus placerat sit amet at velit. Sed at leo ut mi eleifend rutrum nec et dolor. Quisque sed velit egestas, luctus elit sit amet, convallis dolor. Sed a mattis tellus. Integer pharetra erat ex, nec ullamcorper urna gravida non. Cras eget leo vitae sapien viverra porta nec vitae lorem. Nunc quis nulla enim. In ex turpis, congue sed viverra ut, varius vitae metus. Ut a elit in mi rutrum faucibus. Phasellus scelerisque ipsum at mauris pulvinar, at convallis nisi dignissim.
+";
+
+    let size = 18;
+
+    let bounds: Vec<_> = vger
+        .char_bounds(text, size, None)
+        .into_iter()
+        .flatten()
+        .collect();
+
+    let glyphs = vger.glyph_positions(text, size, None);
+
+    assert_eq!(bounds.len(), glyphs.len());
+
+    for i in 0..bounds.len() {
+        let glyph_in_bounds = bounds[i].contains_rect(&glyphs[i]);
+        assert!(glyph_in_bounds, "{}-th glyph is not in bounds!", i);
+    }
+}
+
+#[test]
 fn test_color_hex() {
     let c = Color::hex("#00D4FF").unwrap();
     assert_eq!(c.r, 0.0);
